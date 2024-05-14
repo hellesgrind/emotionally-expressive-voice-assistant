@@ -3,14 +3,14 @@ services:
   speech_analyzer:
     build:
       context: .
-      dockerfile: speech_analyzer/Dockerfile
+      dockerfile: app/Dockerfile
     ports:
       - "${SPEECH_ANALYZER_PORT}:${SPEECH_ANALYZER_PORT}"
     environment:
       - OPENAI_API_KEY=$OPENAI_API_KEY
       - ELEVENLABS_API_KEY=$ELEVENLABS_API_KEY
     volumes:
-      - ./speech_analyzer:/app
+      - ./app:/app
     command: >
       bash -c "uvicorn main:app
       --port $SPEECH_ANALYZER_PORT

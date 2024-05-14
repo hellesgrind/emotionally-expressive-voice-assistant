@@ -13,6 +13,8 @@ load_dotenv()
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 
+# You need to collect
+# alignment info for audio post-processing
 class ElevenLabsAlignmentInfo(BaseModel):
     chars: List[str]
     charStartTimesMs: List[int]
@@ -22,9 +24,13 @@ class ElevenLabsAlignmentInfo(BaseModel):
 class ElevenLabsResponse(BaseModel):
     audio_data: bytes
     alignment_info: ElevenLabsAlignmentInfo
-    output_format: str
+    output_format: str  # needed for post-processing
 
 
+# Combines alignment info of whole audio into a single one
+# NOTE: This function is optional. You can directly process streamed
+# bytes chunks by just collecting audio data and
+# bytes into ElevenLabsResponse
 def combine_alignment_info(
     alignment_info: List[ElevenLabsAlignmentInfo],
 ) -> ElevenLabsAlignmentInfo:
