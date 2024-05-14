@@ -7,11 +7,6 @@ class PromptMessage(TypedDict):
     content: str
 
 
-class Emotion(BaseModel):
-    name: str
-    score: float | None = None
-
-
 class Transcription(BaseModel):
     text: str
 
@@ -19,15 +14,6 @@ class Transcription(BaseModel):
 class UserQuery(BaseModel):
     query: str
     history: List[str]
-
-
-class HumeTranscription(Transcription):
-    text: str
-    emotions: List[Emotion]
-
-
-class TextPayload(BaseModel):
-    text: str
 
 
 class ElevenLabsAlignmentInfo(BaseModel):

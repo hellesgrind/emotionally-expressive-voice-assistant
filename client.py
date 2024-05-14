@@ -75,7 +75,5 @@ async def send_microphone_data(audio_data: bytes):
 
 if __name__ == "__main__":
     audio_bytes = record(duration=4)
-    # save_audio_data(audio_bytes, save_path="hey_there.wav")
-    # response = asyncio.run(send_file("hey_there.wav"))
     response = asyncio.run(send_microphone_data(audio_bytes))
     play(response)

@@ -57,16 +57,13 @@ class ElevenLabsSpeechGeneration:
             )
         return spans
 
-    # TODO: There's no async PyDub, find a replacement
     @staticmethod
     def trim_emotion_annotations(
         audio_data: bytes,
         emotion_placeholder_spans: List[EmotionAnnotationSpan],
     ) -> bytes:
         st = time.time()
-        audio_segment = AudioSegment.from_file(
-            io.BytesIO(audio_data), format="mp3"  # TODO: Remove hardcode
-        )
+        audio_segment = AudioSegment.from_file(io.BytesIO(audio_data), format="mp3")
         markers: List[int] = []
         for span in emotion_placeholder_spans:
             markers.append(span.start_time)

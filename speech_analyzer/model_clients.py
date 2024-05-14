@@ -4,18 +4,11 @@ import base64
 from typing import List
 
 from dotenv import load_dotenv
-from hume import HumeBatchClient
-from hume.models.config import (
-    ProsodyConfig,
-    ModelConfigBase,
-)
 import websockets
 from openai import AsyncOpenAI
 
 from schema import (
     PromptMessage,
-    Emotion,
-    HumeTranscription,
     ElevenLabsAlignmentInfo,
     ElevenLabsResponse,
 )
@@ -25,7 +18,6 @@ load_dotenv()
 
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 OPENAI_CLIENT = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-HUME_BATCH_CLIENT = HumeBatchClient(api_key=os.getenv("HUME_API_KEY"))
 
 
 class WhisperSTT:
@@ -85,14 +77,12 @@ class ElevenLabsTTS:
         self.stability: float = stability
         self.similarity_boost: float = similarity_boost
 
-    # TODO: Process and yield chunk responses
-    #  for streaming generation
     async def generate_audio(
         self,
         text: str,
     ) -> ElevenLabsResponse:
         async with websockets.connect(self.websockets_uri) as websocket:
-            logger.info(f"Start sending info to ElevenLabs")
+            logger.info("Start sending text to ElevenLabs")
             bos_message = {
                 "text": " ",
                 "voice_settings": {
@@ -163,31 +153,3 @@ class ElevenLabsTTS:
             charDurationsMs=char_durations_ms,
         )
         return combined_info
-
-
-class HumeBatchAudio:
-    def __init__(self):
-        self.client: HumeBatchClient = HUME_BATCH_CLIENT
-        self.model_config: List[ModelConfigBase] = [ProsodyConfig()]
-
-    def process_audio(
-        self,
-        filepaths: List[str],
-    ) -> HumeTranscription:
-        job = self.client.submit_job([], self.model_config, files=filepaths)
-        logger.info(f"Running job: {job}")
-        job.await_complete()
-        logger.info(f"Job completed with status: {job.get_status()}")
-        full_predictions = job.get_predictions()
-        # Oh my god...
-        text = full_predictions[0]["results"]["predictions"][0]["models"]["prosody"][
-            "grouped_predictions"
-        ][0]["predictions"][0]["text"]
-        emotions_raw = full_predictions[0]["results"]["predictions"][0]["models"][
-            "prosody"
-        ]["grouped_predictions"][0]["predictions"][0]["emotions"]
-        emotions: List[Emotion] = []
-        for emotion in emotions_raw:
-            emotions.append(Emotion(**emotion))
-        transcription = HumeTranscription(text=text, emotions=emotions)
-        return transcription
