@@ -2,20 +2,6 @@ from typing import List, Literal, TypedDict
 from pydantic import BaseModel
 
 
-class PromptMessage(TypedDict):
-    role: Literal["user", "system"]
-    content: str
-
-
-class Transcription(BaseModel):
-    text: str
-
-
-class UserQuery(BaseModel):
-    query: str
-    history: List[str]
-
-
 class ElevenLabsAlignmentInfo(BaseModel):
     chars: List[str]
     charStartTimesMs: List[int]
@@ -33,5 +19,19 @@ class EmotionAnnotationSpan(BaseModel):
     end_time: int
 
 
-class GeneratedAudio(BaseModel):
-    audio_data: bytes
+class AudioData(BaseModel):
+    data: bytes
+
+
+class PromptMessage(TypedDict):
+    role: Literal["user", "system"]
+    content: str
+
+
+class Transcription(BaseModel):
+    text: str
+
+
+class UserQuery(BaseModel):
+    query: str
+    history: List[str]
