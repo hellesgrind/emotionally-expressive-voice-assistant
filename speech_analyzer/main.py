@@ -17,12 +17,13 @@ from model_clients import (
 app = FastAPI()
 
 WHISPER_MODEL = WhisperSTT(model="whisper-1", language="en")
-GENERATION_MODEL = OpenAIModel(model_name="gpt-3.5-turbo")
+GENERATION_MODEL = OpenAIModel(model_name="gpt-4o")
 TTS_MODEL = ElevenLabsTTS(
     model_id="eleven_monolingual_v1",
     voice_id="TxGEqnHWrfWFTfGW9XjX",
     stability=0.25,
     similarity_boost=0.75,
+    output_format="mp3_44100",
 )
 
 transcriptor = WhisperTranscriptor(stt_model=WHISPER_MODEL)
