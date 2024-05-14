@@ -106,6 +106,7 @@ class ElevenLabsTTS:
                 try:
                     response = await websocket.recv()
                     data = json.loads(response)
+                    logger.info(f"Received response from elevenlabs")
                     if data.get("audio"):
                         logger.info(f"Received audio chunk: {len(data.get('audio'))}")
                         chunk = base64.b64decode(data.get("audio"))
@@ -116,7 +117,7 @@ class ElevenLabsTTS:
                                 ElevenLabsAlignmentInfo(**data.get("alignment"))
                             )
                     else:
-                        logger.info("No audio data in the response")
+                        logger.info(f"No audio data in the response: {response}")
                         break
                 except websockets.exceptions.ConnectionClosed:
                     logger.info("Connection closed")
