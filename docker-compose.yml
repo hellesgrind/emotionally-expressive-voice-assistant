@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  speech_analyzer:
+    build:
+      context: .
+      dockerfile: speech_analyzer/Dockerfile
+    ports:
+      - "${SPEECH_ANALYZER_PORT}:${SPEECH_ANALYZER_PORT}"
+    environment:
+      - HUME_API_KEY=$HUME_API_KEY
+      - OPENAI_API_KEY=$OPENAI_API_KEY
+      - DEEPGRAM_API_KEY=$DEEPGRAM_API_KEY
+      - ELEVENLABS_API_KEY=$ELEVENLABS_API_KEY
+    volumes:
+      - ./speech_analyzer:/app
+    command: >
+      bash -c "uvicorn main:app
+      --port $SPEECH_ANALYZER_PORT
+      --host 0.0.0.0
+      --reload"
+    restart: always
