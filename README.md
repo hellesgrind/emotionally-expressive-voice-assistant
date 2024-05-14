@@ -36,6 +36,7 @@ Before you begin, ensure you have the following installed:
 LLMScrapper is organized into several key components:
 
 - `client.py`: Starts recording of audio and sends it to service.
-- `speech_analyzer/main.py`: FastAPI app with websocket endpoint that audio data and returns audio data of generated response.
-- `speech_analyzer/generation.py`: Prompt is initialized here. LLM generation part. Basically sends request to OpenAI API.
-- `speech_analyzer/tts.py`: Post-processing of audio is here. Generation of audio too, actually.
+- `app/main.py`: FastAPI app with websocket endpoint that audio data and returns audio data of generated response.
+- `app/ttt.py`: Prompt is initialized here. LLM generation part. Basically sends request to OpenAI API.
+- `app/tts.py`: Post-processing of audio is here. 
+- `app/elevenlabs_model.py`: Check here how to collect alignment info for post-processing.
