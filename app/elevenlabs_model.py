@@ -15,6 +15,9 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 # You need to collect
 # alignment info for audio post-processing
+# To get it just unpack the contents of
+# .get("alignment") from websocket response into instance
+# of this class
 class ElevenLabsAlignmentInfo(BaseModel):
     chars: List[str]
     charStartTimesMs: List[int]
@@ -22,7 +25,7 @@ class ElevenLabsAlignmentInfo(BaseModel):
 
 
 class ElevenLabsResponse(BaseModel):
-    audio_data: bytes
+    audio_data: bytes  # audio data bytes
     alignment_info: ElevenLabsAlignmentInfo
     output_format: str  # needed for post-processing
 
