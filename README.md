@@ -27,7 +27,8 @@ Before you begin, ensure you have the following installed:
 ## Usage 🎉
 
 ### Run Demo
-In terminal: `python main.py` 
+1. Install client dependencies: `pip install -r requirements-client.txt`
+2. Run client: `python main.py` 
 
 
 ## Project Structure
