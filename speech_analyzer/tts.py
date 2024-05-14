@@ -4,7 +4,12 @@ from typing import List
 from pydub import AudioSegment
 
 from logs import logger
-from schema import AudioData, EmotionAnnotationSpan, ElevenLabsAlignmentInfo
+from schema import (
+    AudioData,
+    EmotionAnnotationSpan,
+    ElevenLabsAlignmentInfo,
+    ElevenLabsResponse,
+)
 from model_clients import ElevenLabsTTS
 
 
@@ -13,11 +18,15 @@ class EmotionAnnotationTrimmer:
         self.annotation_marker = annotation_marker
 
     def process(
-        self, audio_data: bytes, alignment_info: ElevenLabsAlignmentInfo
+        self,
+        elevenlabs_response: ElevenLabsResponse,
     ) -> AudioData:
-        annotation_spans = self._get_annotation_spans(alignment_info)
+        annotation_spans = self._get_annotation_spans(
+            alignment_info=elevenlabs_response.alignment_info
+        )
         trimmed_audio = self._trim_emotion_annotations(
-            audio_data=audio_data,
+            audio_data=elevenlabs_response.audio_data,
+            audio_format=elevenlabs_response.output_format,
             annotation_spans=annotation_spans,
         )
         return AudioData(data=trimmed_audio)
@@ -48,10 +57,25 @@ class EmotionAnnotationTrimmer:
     @staticmethod
     def _trim_emotion_annotations(
         audio_data: bytes,
+        audio_format: str,
         annotation_spans: List[EmotionAnnotationSpan],
     ) -> bytes:
         st = time.time()
-        audio_segment = AudioSegment.from_file(io.BytesIO(audio_data), format="mp3")
+        if "mp3" in audio_format:
+            pydub_format = "mp3"
+        elif "mp4" in audio_format:
+            pydub_format = "mp3"
+        elif "wav" in audio_format:
+            pydub_format = "wav"
+        elif "pcm" in audio_format:
+            pydub_format = "pcm"
+        else:
+            logger.error(f"Format {audio_format} not supported")
+            return b""
+        audio_segment = AudioSegment.from_file(
+            file=io.BytesIO(audio_data),
+            format=pydub_format,
+        )
         parts = []
         previous_end = 0
         for span in annotation_spans:
@@ -79,7 +103,7 @@ class ElevenLabsSpeechGeneration:
         model: ElevenLabsTTS,
     ):
         self.model = model
-        self.emotion_annotation_remover = EmotionAnnotationTrimmer()
+        self.emotion_annotation_trimmer = EmotionAnnotationTrimmer()
 
     async def generate(self, text: str) -> AudioData:
         logger.info(f"Start generating audio: {text}")
@@ -90,8 +114,7 @@ class ElevenLabsSpeechGeneration:
             f"Finish generating audio (time: {et - st:.3f} s.), "
             f"len: {len(response.audio_data)} bytes"
         )
-        processed_audio = self.emotion_annotation_remover.process(
-            audio_data=response.audio_data,
-            alignment_info=response.alignment_info,
+        processed_audio = self.emotion_annotation_trimmer.process(
+            elevenlabs_response=response,
         )
         return processed_audio

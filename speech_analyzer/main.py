@@ -55,7 +55,7 @@ async def voice_chat(websocket: WebSocket):
             if len(dialog_history) >= 10:
                 dialog_history.pop(0)
                 dialog_history.pop(0)
-            await websocket.send_bytes(audio_data.audio_data)
+            await websocket.send_bytes(audio_data.data)
         except Exception as e:
             logger.info(f"Websocket disconnect: {e}")
             break
