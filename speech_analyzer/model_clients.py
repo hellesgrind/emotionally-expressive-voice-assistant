@@ -66,14 +66,14 @@ class ElevenLabsTTS:
         voice_id: str,
         stability: float = 0.2,
         similarity_boost: float = 0.75,
+        output_format: str = "mp3_44100",
     ):
         self.websockets_uri: str = (
             "wss://api.elevenlabs.io/v1/text-to-speech/"
             f"{voice_id}/stream-input?model_id={model_id}"
         )
         self.api_key: str = ELEVENLABS_API_KEY
-        self.output_format: str = "mp3_44100"
-        self.pydub_format: str = "mp3"
+        self.output_format: str = output_format
         self.stability: float = stability
         self.similarity_boost: float = similarity_boost
 
