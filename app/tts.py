@@ -42,9 +42,9 @@ class EmotionAnnotationTrimmer:
         marker_length: int = len(self.annotation_marker)
         marker_positions: List[int] = []
         for i in range(len(alignment_info.chars) - marker_length + 1):
-            if alignment_info.chars[i : i + marker_length] == self.annotation_marker:
+            chars = "".join(alignment_info.chars[i : i + marker_length])
+            if chars == self.annotation_marker:
                 marker_positions.append(alignment_info.charStartTimesMs[i])
-
         if len(marker_positions) % 2 != 0:
             logger.error("Uneven number of emotion markers found.")
             return []
@@ -56,6 +56,7 @@ class EmotionAnnotationTrimmer:
                     start_time=marker_positions[i], end_time=marker_positions[i + 1]
                 ),
             )
+        logger.info(f"Emotional span timelines: {spans}")
         return spans
 
     @staticmethod

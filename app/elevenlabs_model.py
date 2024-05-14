@@ -115,11 +115,8 @@ class ElevenLabsTTS:
                             alignment_info.append(
                                 ElevenLabsAlignmentInfo(**data.get("alignment"))
                             )
-                        else:
-                            logger.error(f"No alignment info in response: {response}")
-                            break
                     else:
-                        logger.error(f"No audio data in the response: {response}")
+                        logger.info(f"No audio data in the response: {response}")
                         break
                 except websockets.exceptions.ConnectionClosed:
                     logger.info("Connection closed")
