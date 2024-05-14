@@ -2,15 +2,19 @@ import io
 import time
 from typing import List
 from pydub import AudioSegment
+from pydantic import BaseModel
 
 from logs import logger
-from schema import (
-    AudioData,
-    EmotionAnnotationSpan,
-    ElevenLabsAlignmentInfo,
-    ElevenLabsResponse,
-)
-from model_clients import ElevenLabsTTS
+from elevenlabs_model import ElevenLabsAlignmentInfo, ElevenLabsResponse, ElevenLabsTTS
+
+
+class EmotionAnnotationSpan(BaseModel):
+    start_time: int
+    end_time: int
+
+
+class AudioData(BaseModel):
+    data: bytes
 
 
 class EmotionAnnotationTrimmer:

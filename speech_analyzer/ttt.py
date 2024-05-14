@@ -1,8 +1,42 @@
-from typing import List
+import os
+from dotenv import load_dotenv
+from typing import List, TypedDict, Literal
+from pydantic import BaseModel
+from openai import AsyncOpenAI
 
 from logs import logger
-from schema import UserQuery, PromptMessage
-from model_clients import OpenAIModel
+
+load_dotenv()
+OPENAI_CLIENT = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+class PromptMessage(TypedDict):
+    role: Literal["user", "system"]
+    content: str
+
+
+class UserQuery(BaseModel):
+    query: str
+    history: List[str]
+
+
+class OpenAIModel:
+    def __init__(
+        self,
+        model_name: str,
+        temperature: float = 0.0,
+    ):
+        self.client: AsyncOpenAI = OPENAI_CLIENT
+        self.model_name: str = model_name
+        self.temperature: float = temperature
+
+    async def generate(self, messages: List[PromptMessage]) -> str:
+        completions = await self.client.chat.completions.create(
+            messages=messages,
+            model=self.model_name,
+            temperature=self.temperature,
+        )
+        return completions.choices[0].message.content
 
 
 def print_prompt(prompt: List[PromptMessage]) -> str:

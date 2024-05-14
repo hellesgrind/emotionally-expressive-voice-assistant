@@ -2,61 +2,54 @@ import os
 import json
 import base64
 from typing import List
-
 from dotenv import load_dotenv
+from pydantic import BaseModel
 import websockets
-from openai import AsyncOpenAI
 
-from schema import (
-    PromptMessage,
-    ElevenLabsAlignmentInfo,
-    ElevenLabsResponse,
-)
 from logs import logger
 
 load_dotenv()
 
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-OPENAI_CLIENT = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-class WhisperSTT:
-    def __init__(
-        self,
-        model: str,
-        language: str,
-    ):
-        self.model = model
-        self.language = language
-        self.client = OPENAI_CLIENT
-
-    async def transcribe_audio(self, file_path: str) -> str:
-        audio_file = open(file_path, "rb")
-        response = await self.client.audio.transcriptions.create(
-            model=self.model,
-            language=self.language,
-            file=audio_file,
-        )
-        return response.text
+class ElevenLabsAlignmentInfo(BaseModel):
+    chars: List[str]
+    charStartTimesMs: List[int]
+    charDurationsMs: List[int]
 
 
-class OpenAIModel:
-    def __init__(
-        self,
-        model_name: str,
-        temperature: float = 0.0,
-    ):
-        self.client: AsyncOpenAI = OPENAI_CLIENT
-        self.model_name: str = model_name
-        self.temperature: float = temperature
+class ElevenLabsResponse(BaseModel):
+    audio_data: bytes
+    alignment_info: ElevenLabsAlignmentInfo
+    output_format: str
 
-    async def generate(self, messages: List[PromptMessage]) -> str:
-        completions = await self.client.chat.completions.create(
-            messages=messages,
-            model=self.model_name,
-            temperature=self.temperature,
-        )
-        return completions.choices[0].message.content
+
+def combine_alignment_info(
+    alignment_info: List[ElevenLabsAlignmentInfo],
+) -> ElevenLabsAlignmentInfo:
+    """
+    Integrates multiple alignment info blocks
+    into a single alignment info dictionary.
+    """
+    cumulative_run_time = 0
+    chars: List[str] = []
+    char_start_times_ms: List[int] = []
+    char_durations_ms: List[int] = []
+    for block in alignment_info:
+        chars.extend([" "] + block.chars)
+        char_durations_ms.extend([block.charDurationsMs[0]] + block.charDurationsMs)
+        start_times = [0] + [
+            time + cumulative_run_time for time in block.charStartTimesMs
+        ]
+        char_start_times_ms.extend(start_times)
+        cumulative_run_time += sum(block.charDurationsMs)
+    combined_info = ElevenLabsAlignmentInfo(
+        chars=chars,
+        charStartTimesMs=char_start_times_ms,
+        charDurationsMs=char_durations_ms,
+    )
+    return combined_info
 
 
 class ElevenLabsTTS:
@@ -106,7 +99,7 @@ class ElevenLabsTTS:
                 try:
                     response = await websocket.recv()
                     data = json.loads(response)
-                    logger.info(f"Received response from elevenlabs")
+                    logger.info("Received response from elevenlabs")
                     if data.get("audio"):
                         logger.info(f"Received audio chunk: {len(data.get('audio'))}")
                         chunk = base64.b64decode(data.get("audio"))
@@ -116,13 +109,16 @@ class ElevenLabsTTS:
                             alignment_info.append(
                                 ElevenLabsAlignmentInfo(**data.get("alignment"))
                             )
+                        else:
+                            logger.error(f"No alignment info in response: {response}")
+                            break
                     else:
-                        logger.info(f"No audio data in the response: {response}")
+                        logger.error(f"No audio data in the response: {response}")
                         break
                 except websockets.exceptions.ConnectionClosed:
                     logger.info("Connection closed")
                     break
-        combined_alignment_info = self.combine_alignment_info(alignment_info)
+        combined_alignment_info = combine_alignment_info(alignment_info)
         audio_data = b"".join(audio_chunks)
         response = ElevenLabsResponse(
             audio_data=audio_data,
@@ -130,27 +126,3 @@ class ElevenLabsTTS:
             output_format=self.output_format,
         )
         return response
-
-    @staticmethod
-    def combine_alignment_info(
-        alignment_info: List[ElevenLabsAlignmentInfo],
-    ) -> ElevenLabsAlignmentInfo:
-        """Integrates multiple alignment blocks into a single alignment dictionary."""
-        cumulative_run_time = 0
-        chars: List[str] = []
-        char_start_times_ms: List[int] = []
-        char_durations_ms: List[int] = []
-        for block in alignment_info:
-            chars.extend([" "] + block.chars)
-            char_durations_ms.extend([block.charDurationsMs[0]] + block.charDurationsMs)
-            start_times = [0] + [
-                time + cumulative_run_time for time in block.charStartTimesMs
-            ]
-            char_start_times_ms.extend(start_times)
-            cumulative_run_time += sum(block.charDurationsMs)
-        combined_info = ElevenLabsAlignmentInfo(
-            chars=chars,
-            charStartTimesMs=char_start_times_ms,
-            charDurationsMs=char_durations_ms,
-        )
-        return combined_info
