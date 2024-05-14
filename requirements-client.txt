@@ -1,0 +1,7 @@
+requests==2.31.0
+python-dotenv==1.0.1
+pydub==0.25.1
+elevenlabs==1.2.1
+websockets==12.0
+loguru==0.7.2
+pyaudio==0.2.14

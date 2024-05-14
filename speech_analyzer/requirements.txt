@@ -7,3 +7,4 @@ openai==1.1.1
 numpy==1.26.4
 pydub==0.25.1
 elevenlabs==1.2.1
+websockets==12.0
