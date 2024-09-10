@@ -1,7 +1,10 @@
 # Emotionally expressive voice-assistant
 Voice-bot that produces emotionally expressive responses using Elevenlabs emotion prompting.
+
 You can read a bit more about Elevenlabs emotion prompting here: [Notion](https://alexnaumov.notion.site/Emotional-Elevenlabs-673151850e304212b2f89d138bc8abb6)
+
 Full pipeline (STT + LLM + TTS) powered with Deepgram, Elevenlabs and OAI API.
+
 ## Getting Started 🌟
 ### Prerequisites
 Before you begin, ensure you have the following installed:
